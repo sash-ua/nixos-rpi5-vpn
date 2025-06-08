@@ -1,3 +1,7 @@
-vpn_ed25
 .DS_Store
 .idea/*
+sops/*
+
+vpn_ed25
+private.key
+age.key
