@@ -1,0 +1,5 @@
+---
+creation_rules:
+  - encrypted_regex: '^(sshHostKey|ddclient|wireguard|.*key)$'
+    age:
+        age187qf06h078xs8lt4dhma9m0x7tnxucr3j4ww9j86j797azutws5spcp78j

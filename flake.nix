@@ -1,21 +1,33 @@
 {
-  description = "Encrypted bootable WireGuard VPN image for Raspberry Pi 5";
+  description = "Bootable encrypted VPN Pi5 setup";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-24.05";
-    flake-utils.url = "github:numtide/flake-utils";
-    nixos-images.url = "github:nix-community/nixos-images";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
+    disko.url = "github:nix-community/disko";
+    sops-nix.url = "github:Mic92/sops-nix";
   };
 
-  outputs = { self, nixpkgs, flake-utils, nixos-images, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        disk-config = import ./disko.nix;
-        vpn-config = import ./configuration.nix;
-      in {
-        packages.default = nixos-images.packages.${system}.raspberrypi-5.override {
-          configuration = pkgs.lib.mkMerge [ disk-config vpn-config ];
+  outputs = { self, nixpkgs, disko, nixos-hardware, sops-nix, ... }@inputs:
+    let
+      system = "aarch64-linux";
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      nixosConfigurations.rpi5 = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {
+          inherit inputs;
+          secretsFile = ./secrets/secrets.yaml;
         };
-      });
+        modules = [
+          disko.nixosModules.disko
+          nixos-hardware.nixosModules.raspberry-pi-5
+          inputs.sops-nix.nixosModules.sops
+          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+          ./hardware/rpi5-hardware.nix
+          ./disko-config.nix
+          ./hosts/rpi5.nix
+        ];
+      };
+    };
 }

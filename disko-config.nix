@@ -1,4 +1,6 @@
+{ config, lib, ... }:
 {
+  fileSystems."/".device = lib.mkForce "/dev/mapper/crypted";
   disko.devices = {
     disk.main = {
       type = "disk";
@@ -7,19 +9,19 @@
         type = "gpt";
         partitions = {
           boot = {
-            size = "512M";
             type = "EF00";
+            size = "512M";
             content = {
               type = "filesystem";
               format = "vfat";
               mountpoint = "/boot";
             };
           };
-          root = {
+          luks = {
             size = "100%";
             content = {
               type = "luks";
-              name = "cryptroot";
+              name = "crypted";
               settings.allowDiscards = true;
               content = {
                 type = "filesystem";
